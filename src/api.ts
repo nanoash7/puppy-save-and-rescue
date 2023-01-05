@@ -83,13 +83,13 @@ export const getPetById = ((async (event) => {
     const stmt = db.prepare("SELECT * FROM pets WHERE id=:id ");
 
     // Bind values to the parameters and fetch the results of the query
-    const result = stmt.getAsObject({':id' : 1});
+    const result = stmt.getAsObject({':id' : event.pathParameters.id});
 
     return { statusCode: 200, body: JSON.stringify(result) }
 }))
 
 /**
- * Get an owner by ID. This should return all of the owners perts.
+ * Get an owner by ID. This should return all of the owners pets.
  * Route: /api/owners/{id}
  *
  **/
@@ -131,8 +131,23 @@ export const getLostPets = ((async (event) => {
     // Initialize the DB
     let db = await init();
 
-    // TODO: Finish implementation here
+    const all_pets = db.exec("SELECT * FROM pets");
+    const owners_pets = db.exec("SELECT * FROM owners_pets");
 
-    return { statusCode: 200 }
+
+    let result = <any>[];
+    for (let i = 0; i < all_pets.length; i++) {
+        let test = false;
+        for (let j = 0; j < owners_pets.length; j++) {
+            if (all_pets[i]["id"] == owners_pets[j]["pet_id"]) {
+                test = true;
+            }
+        }
+        if (!test) {
+            result.push(all_pets[i]);
+        }
+    }
+
+    return { statusCode: 200, body: JSON.stringify(result) }
 }))
 
